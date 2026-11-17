@@ -1,0 +1,3418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Progress Plan</title>
+    <style>
+        /* ==========================================================================
+           DESIGN TOKENS & SYSTEM RESET (NOTION / LINEAR INSPIRED WORKSHEET)
+           ========================================================================== */
+        :root {
+            --bg-canvas: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --bg-hover: #e2e8f0;
+
+            --border-hairline: #e2e8f0;
+            --border-input: #cbd5e1;
+
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+
+            --indigo: #4f46e5;
+            --indigo-hover: #4338ca;
+            --indigo-soft: #eef2ff;
+            --indigo-border: #c7d2fe;
+
+            --emerald: #059669;
+            --emerald-bg: #dcfce7;
+            --emerald-border: #86efac;
+
+            --amber: #b45309;
+            --amber-bg: #fffbeb;
+            --amber-soft: #fef3c7;
+            --amber-border: #f59e0b;
+
+            --crimson: #b91c1c;
+            --crimson-bg: #fee2e2;
+            --crimson-border: #fca5a5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 56px;
+        }
+
+        /* ==========================================================================
+           STICKY TOP WORKSPACE HEADER & DUAL TOOLBAR
+           ========================================================================== */
+        .workspace-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-hairline);
+            padding: 10px 16px;
+        }
+
+        .top-toolbar {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .toolbar-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Live Auto-Save Status Pill */
+        .autosave-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--emerald-border);
+            background: var(--emerald-bg);
+            color: var(--emerald);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .autosave-pill:hover {
+            filter: brightness(0.97);
+        }
+
+        .autosave-pill.saving {
+            border-color: var(--indigo-border);
+            background: var(--indigo-soft);
+            color: var(--indigo);
+        }
+
+        .autosave-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+
+        /* Segmented Format Switcher (Paged Form | Full Sheet) */
+        .segmented-control {
+            display: inline-flex;
+            background: var(--bg-subtle);
+            padding: 3px;
+            border-radius: 9px;
+            border: 1px solid var(--border-hairline);
+        }
+
+        .seg-btn {
+            padding: 5px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .seg-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .seg-btn.active {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Standard Action Buttons */
+        .tool-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tool-btn:hover {
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+        }
+
+        .tool-btn.primary {
+            background: var(--indigo);
+            border-color: var(--indigo);
+            color: #ffffff;
+        }
+
+        .tool-btn.primary:hover {
+            background: var(--indigo-hover);
+        }
+
+        .tool-btn.teacher-toggle {
+            border-color: var(--amber-border);
+            background: var(--amber-bg);
+            color: var(--amber);
+        }
+
+        .tool-btn.teacher-toggle.active {
+            background: var(--amber-border);
+            color: #ffffff;
+        }
+
+        .tool-btn.subtle-danger {
+            border-color: transparent;
+            background: transparent;
+            color: var(--text-muted);
+        }
+
+        .tool-btn.subtle-danger:hover {
+            background: var(--crimson-bg);
+            color: var(--crimson);
+        }
+
+        /* ==========================================================================
+           LIVE MULTI-DEVICE SYNC BAR
+           ========================================================================== */
+        .live-sync-bar {
+            max-width: 900px;
+            margin: 8px auto 0;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-hairline);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .sync-status-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sync-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            border: 1px solid var(--border-hairline);
+            background: var(--bg-card);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sync-status-pill.connected {
+            background: var(--emerald-bg);
+            border-color: var(--emerald-border);
+            color: var(--emerald);
+        }
+
+        .sync-status-pill.connecting {
+            background: var(--indigo-soft);
+            border-color: var(--indigo-border);
+            color: var(--indigo);
+        }
+
+        .sync-status-pill.error {
+            background: var(--amber-bg);
+            border-color: var(--amber-border);
+            color: var(--amber);
+            cursor: help;
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+            flex-shrink: 0;
+        }
+
+        .sync-status-pill.connected .sync-dot {
+            background: var(--emerald);
+            animation: syncPulse 1.8s infinite;
+        }
+
+        .sync-status-pill.connecting .sync-dot {
+            background: var(--indigo);
+        }
+
+        .sync-status-pill.error .sync-dot {
+            background: var(--amber-border);
+        }
+
+        @keyframes syncPulse {
+            0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.45); }
+            70% { box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+        }
+
+        .sync-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .room-code-input {
+            width: 170px !important;
+            padding: 5px 11px !important;
+            border-radius: 999px !important;
+            font-size: 12.5px !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .sync-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .sync-btn:hover {
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+        }
+
+        .sync-btn.primary {
+            background: var(--indigo);
+            border-color: var(--indigo);
+            color: #ffffff;
+        }
+
+        .sync-btn.primary:hover {
+            background: var(--indigo-hover);
+        }
+
+        /* ==========================================================================
+           MAIN CONTAINER & INLINE BANNERS
+           ========================================================================== */
+        .main-container {
+            max-width: 900px;
+            margin: 22px auto 0;
+            padding: 0 16px;
+        }
+
+        .inline-banner {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .inline-banner.visible {
+            display: flex;
+        }
+
+        .reset-confirm-bar {
+            background: var(--crimson-bg);
+            border: 1px solid var(--crimson-border);
+            color: var(--crimson);
+        }
+
+        .print-fallback-banner {
+            background: var(--indigo-soft);
+            border: 1px solid var(--indigo-border);
+            color: var(--text-primary);
+        }
+
+        .firebase-help-banner {
+            background: var(--amber-bg);
+            border: 1px solid var(--amber-border);
+            color: var(--amber);
+        }
+
+        .banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-danger-solid {
+            padding: 5px 12px;
+            border-radius: 7px;
+            border: none;
+            background: var(--crimson);
+            color: #ffffff;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-banner-ghost {
+            padding: 5px 10px;
+            border-radius: 7px;
+            border: 1px solid currentColor;
+            background: transparent;
+            color: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ==========================================================================
+           DOCUMENT TITLE & VISUAL PROGRESS ROADMAP
+           ========================================================================== */
+        .doc-title-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .doc-title-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .doc-title {
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .doc-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .roadmap-strip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-hairline);
+            border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .roadmap-node {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            transition: all 0.15s ease;
+        }
+
+        .roadmap-node.done {
+            background: var(--emerald-bg);
+            color: var(--emerald);
+        }
+
+        /* ==========================================================================
+           WIZARD STEP NAVIGATION (SHOWN IN PAGED FORM MODE)
+           ========================================================================== */
+        .wizard-header {
+            background: var(--bg-card);
+            border: 1px solid var(--border-hairline);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+        }
+
+        body.full-sheet-mode .wizard-header {
+            display: none;
+        }
+
+        .wizard-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 12.5px;
+            margin-bottom: 8px;
+        }
+
+        .wizard-page-label {
+            font-weight: 700;
+            color: var(--indigo);
+        }
+
+        .wizard-step-name {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .wizard-pct-label {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-subtle);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 20%;
+            background: var(--indigo);
+            border-radius: 999px;
+            transition: width 0.25s ease;
+        }
+
+        .step-pills-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .step-pill {
+            padding: 5px 11px;
+            border-radius: 999px;
+            border: 1px solid var(--border-hairline);
+            background: var(--bg-canvas);
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .step-pill:hover {
+            border-color: var(--border-input);
+            color: var(--text-primary);
+        }
+
+        .step-pill.active {
+            background: var(--indigo-soft);
+            border-color: var(--indigo-border);
+            color: var(--indigo);
+        }
+
+        /* ==========================================================================
+           FORM SECTION CARDS & PAGED VS FULL-SHEET VISIBILITY
+           ========================================================================== */
+        .form-page {
+            background: var(--bg-card);
+            border: 1px solid var(--border-hairline);
+            border-radius: 12px;
+            padding: 24px 26px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+        }
+
+        body:not(.full-sheet-mode) .form-page {
+            display: none;
+        }
+
+        body:not(.full-sheet-mode) .form-page.active-page {
+            display: block;
+        }
+
+        body.full-sheet-mode .form-page {
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        body.full-sheet-mode .page-footer-nav {
+            display: none;
+        }
+
+        .section-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .section-instruction {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+        }
+
+        /* ==========================================================================
+           FORM INPUTS, STEPPER, PILLS & TABLES
+           ========================================================================== */
+        .field-label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px 11px;
+            border: 1px solid var(--border-input);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13.5px;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 58px;
+        }
+
+        /* Progressive Word Limit Counter Badges */
+        .wc-wrap {
+            position: relative;
+        }
+
+        .wc-pill {
+            display: none;
+            justify-content: flex-end;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 3px;
+            color: var(--text-muted);
+        }
+
+        .wc-pill.visible-threshold {
+            display: flex;
+            color: var(--text-muted);
+        }
+
+        .wc-pill.near-limit {
+            display: flex;
+            color: var(--amber);
+        }
+
+        .wc-pill.at-limit {
+            display: flex;
+            color: var(--crimson);
+        }
+
+        /* Page 1 Layouts */
+        .charter-top-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr auto;
+            gap: 14px;
+            align-items: end;
+            margin-bottom: 18px;
+        }
+
+        @media (max-width: 640px) {
+            .charter-top-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stepper-ctrl {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-input);
+            border-radius: 8px;
+            padding: 4px 10px;
+            height: 37px;
+        }
+
+        .stepper-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stepper-btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .stepper-count {
+            font-size: 14px;
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .roster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .goal-row {
+            margin-bottom: 18px;
+        }
+
+        .decision-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .pill-choice-group {
+            display: inline-flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .choice-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .choice-pill:hover {
+            background: var(--bg-subtle);
+        }
+
+        .choice-pill.selected {
+            background: var(--indigo-soft);
+            border-color: var(--indigo);
+            color: var(--indigo);
+        }
+
+        .agreement-panel {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-hairline);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .agreement-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .agree-check-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .agree-check-pill.checked {
+            background: var(--emerald-bg);
+            border-color: var(--emerald-border);
+            color: var(--emerald);
+            font-weight: 600;
+        }
+
+        /* Timer Widget */
+        .timer-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-hairline);
+            border-radius: 999px;
+            padding: 4px 10px;
+        }
+
+        .timer-display {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--indigo);
+            padding: 0 4px;
+        }
+
+        .timer-btn {
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .timer-btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .timer-btn.primary {
+            background: var(--indigo);
+            border-color: var(--indigo);
+            color: #ffffff;
+        }
+
+        /* Responsive Clean Tables */
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border-hairline);
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 620px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid var(--border-hairline);
+            font-size: 13px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        th {
+            background: var(--bg-canvas);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .member-cell {
+            font-weight: 600;
+            color: var(--text-primary);
+            padding-top: 16px;
+        }
+
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 680px) {
+            .two-col-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .spoke-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-hairline);
+        }
+
+        /* Page 4 Checklist & Consolidated Teacher Sign-Off Bar */
+        .checklist-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-hairline);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--indigo);
+            cursor: pointer;
+        }
+
+        .teacher-signoff-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1.5px dashed var(--border-input);
+            background: var(--bg-canvas);
+            margin-top: 18px;
+            transition: all 0.2s ease;
+        }
+
+        body.teacher-check-highlight .teacher-signoff-bar {
+            border: 2px solid var(--amber-border);
+            background: var(--amber-bg);
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
+        }
+
+        .teacher-bar-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .milestone-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .ms-check-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            border-radius: 999px;
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .ms-check-pill.checked {
+            background: var(--emerald-bg);
+            border-color: var(--emerald-border);
+            color: var(--emerald);
+        }
+
+        .teacher-status-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-toggle-btn {
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .status-toggle-btn.pass.active {
+            background: var(--emerald);
+            border-color: var(--emerald);
+            color: #ffffff;
+        }
+
+        .status-toggle-btn.revise.active {
+            background: var(--amber-border);
+            border-color: var(--amber-border);
+            color: #ffffff;
+        }
+
+        .teacher-initials {
+            width: 76px !important;
+            padding: 5px 8px !important;
+            text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Page 5 Private Self-Check & Stuck Protocol */
+        .privacy-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            background: var(--indigo-soft);
+            border: 1px solid var(--indigo-border);
+            color: var(--text-primary);
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .privacy-banner svg {
+            color: var(--indigo);
+            flex-shrink: 0;
+        }
+
+        .evaluator-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-hairline);
+        }
+
+        .evaluator-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .evaluator-field label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .evaluator-field select {
+            width: auto !important;
+            min-width: 195px;
+            padding: 6px 10px !important;
+            font-size: 13px !important;
+        }
+
+        .print-private-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .print-private-toggle input {
+            accent-color: var(--indigo);
+            cursor: pointer;
+        }
+
+        .rubric-bar {
+            display: inline-block;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-hairline);
+            border-radius: 8px;
+            padding: 6px 12px;
+            margin-bottom: 14px;
+        }
+
+        .score-input {
+            width: 52px !important;
+            text-align: center;
+            padding: 6px 4px !important;
+            font-weight: 600;
+        }
+
+        .total-cell {
+            font-weight: 700;
+            padding-top: 16px;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 700;
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+
+        .tier-outstanding { background: var(--emerald-bg); color: var(--emerald); }
+        .tier-solid { background: var(--indigo-soft); color: var(--indigo); }
+        .tier-prompting { background: var(--amber-soft); color: var(--amber); }
+        .tier-low { background: var(--crimson-bg); color: var(--crimson); }
+
+        .section-divider {
+            height: 1px;
+            background: var(--border-hairline);
+            margin: 22px 0;
+        }
+
+        .sub-heading {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .stuck-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 680px) {
+            .stuck-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stuck-step-card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-hairline);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+        }
+
+        .stuck-step-card strong {
+            display: block;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .tester-feedback-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 18px;
+            align-items: end;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-hairline);
+        }
+
+        @media (max-width: 680px) {
+            .tester-feedback-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Wizard Footer Navigation */
+        .page-footer-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-hairline);
+        }
+
+        .nav-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .nav-action-btn.secondary {
+            border: 1px solid var(--border-input);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        .nav-action-btn.secondary:hover:not(:disabled) {
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+        }
+
+        .nav-action-btn.secondary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .nav-action-btn.primary {
+            border: 1px solid var(--indigo);
+            background: var(--indigo);
+            color: #ffffff;
+        }
+
+        .nav-action-btn.primary:hover {
+            background: var(--indigo-hover);
+        }
+
+        .page-dots {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .page-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--border-input);
+        }
+
+        .page-dot.active {
+            background: var(--indigo);
+            transform: scale(1.25);
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 60;
+            background: var(--text-primary);
+            color: #ffffff;
+            padding: 9px 15px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .toast-notification.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ==========================================================================
+           STATIC PRINT MIRRORS & @MEDIA PRINT STYLESHEET (UNCLIPPED PAPER OUTPUT)
+           ========================================================================== */
+        .print-mirror {
+            display: none;
+        }
+
+        @media print {
+            @page {
+                margin: 0.45in;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0 !important;
+                font-size: 10.5pt;
+            }
+
+            .workspace-header,
+            .wizard-header,
+            .page-footer-nav,
+            .timer-bar,
+            .stepper-ctrl,
+            .privacy-banner,
+            .print-private-toggle,
+            .print-fallback-banner,
+            .firebase-help-banner,
+            .reset-confirm-bar,
+            .toast-notification,
+            .wc-pill {
+                display: none !important;
+            }
+
+            body.exclude-private-print .private-selfcheck-block {
+                display: none !important;
+            }
+
+            .main-container {
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            .form-page {
+                display: block !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+                padding: 14px 16px !important;
+                margin-bottom: 14px !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            select,
+            textarea {
+                display: none !important;
+            }
+
+            .print-mirror {
+                display: block !important;
+                min-height: 20px;
+                padding: 3px 2px;
+                border-bottom: 1px solid #94a3b8;
+                font-size: 10pt;
+                color: #0f172a;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
+            .print-mirror.empty {
+                color: #94a3b8;
+            }
+
+            table {
+                min-width: 100% !important;
+            }
+
+            th, td {
+                padding: 6px 8px !important;
+                font-size: 9.5pt !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sticky Workspace Toolbar -->
+    <header class="workspace-header">
+        <div class="top-toolbar">
+            <div class="toolbar-group">
+                <button type="button" class="autosave-pill" id="autoSaveBtn" onclick="window.forceSave()">
+                    <span class="autosave-dot"></span>
+                    <span id="autoSaveText">Auto-Saved</span>
+                </button>
+
+                <div class="segmented-control" role="group" aria-label="View layout">
+                    <button type="button" class="seg-btn active" id="modePagedBtn" onclick="window.setViewMode('paged')">Paged Form</button>
+                    <button type="button" class="seg-btn" id="modeFullBtn" onclick="window.setViewMode('full')">Full Sheet</button>
+                </div>
+            </div>
+
+            <div class="toolbar-group">
+                <button type="button" class="tool-btn teacher-toggle" id="teacherCheckBtn" onclick="window.toggleTeacherCheckMode()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    Teacher Check
+                </button>
+                <button type="button" class="tool-btn primary" onclick="window.triggerPrint()">Print / PDF</button>
+                <button type="button" class="tool-btn" onclick="window.exportJSON()">Export</button>
+                <button type="button" class="tool-btn" onclick="document.getElementById('importFile').click()">Import</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="window.importJSON(event)">
+                <button type="button" class="tool-btn subtle-danger" onclick="window.openResetConfirm()">Reset</button>
+            </div>
+        </div>
+
+        <!-- Live Multi-Device Sync Control Bar -->
+        <div class="live-sync-bar">
+            <div class="sync-status-wrap">
+                <div class="sync-status-pill" id="syncStatusPill" title="Enter a Room Code to sync Sections 1–4 across multiple devices in real time.">
+                    <span class="sync-dot" id="syncDot"></span>
+                    <span id="syncStatusText">Offline / Local Only</span>
+                </div>
+            </div>
+            <div class="sync-controls">
+                <input type="text" class="room-code-input" id="roomCodeInput" maxlength="20" placeholder="Room code (e.g. BIO-4)" onkeydown="if(event.key==='Enter'){event.preventDefault();window.joinOrLeaveRoom();}">
+                <button type="button" class="sync-btn primary" id="joinRoomBtn" onclick="window.joinOrLeaveRoom()">Create / Join</button>
+                <button type="button" class="sync-btn" id="copyRoomLinkBtn" onclick="window.copyRoomLink()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    Copy Link
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Firebase Setup Help Banner (Only shown if Firebase rejects Anonymous Auth or Firestore Rules) -->
+        <div class="inline-banner firebase-help-banner" id="firebaseHelpBanner" role="alert">
+            <span id="firebaseHelpText"><strong>Firebase Setup Tip:</strong> Enable <strong>Anonymous</strong> sign-in and Firestore Database in your Firebase Console to activate live multi-device sync.</span>
+            <div class="banner-actions">
+                <button type="button" class="btn-banner-ghost" onclick="document.getElementById('firebaseHelpBanner').classList.remove('visible')">Dismiss</button>
+            </div>
+        </div>
+
+        <!-- Inline Reset Confirmation Banner (Never uses window.confirm) -->
+        <div class="inline-banner reset-confirm-bar" id="resetConfirmBar" role="alert">
+            <span><strong>Reset entire form?</strong> This clears all local names, responses, and scores on this device.</span>
+            <div class="banner-actions">
+                <button type="button" class="btn-banner-ghost" onclick="window.closeResetConfirm()">Cancel</button>
+                <button type="button" class="btn-danger-solid" onclick="window.confirmResetAll()">Yes, Clear Everything</button>
+            </div>
+        </div>
+
+        <!-- Inline Sandboxed Print Fallback Banner -->
+        <div class="inline-banner print-fallback-banner" id="printFallbackBanner">
+            <span><strong>Preview Sandbox Tip:</strong> If your browser preview blocks the print dialog, press <strong>Ctrl+P</strong> (or <strong>&#8984;+P</strong>) or download a ready-to-print sheet.</span>
+            <div class="banner-actions">
+                <button type="button" class="tool-btn primary" onclick="window.downloadPrintableHTML()">Download Pre-Filled Print Sheet (.html)</button>
+                <button type="button" class="btn-banner-ghost" onclick="window.dismissPrintBanner()">Dismiss</button>
+            </div>
+        </div>
+
+        <!-- Document Title & Visual Progress Roadmap -->
+        <div class="doc-title-bar">
+            <div class="doc-title-left">
+                <h1 class="doc-title">GROUP PROGRESS PLAN</h1>
+                <span class="doc-subtitle">Collaborative Team Roadmap &amp; Accountability Tracker</span>
+            </div>
+            <div class="roadmap-strip" aria-label="Milestone Roadmap">
+                <span class="roadmap-node" id="rmNode_m1">M1: Idea</span>
+                <span>&rarr;</span>
+                <span class="roadmap-node" id="rmNode_m23">M2&ndash;3: Plan</span>
+                <span>&rarr;</span>
+                <span class="roadmap-node" id="rmNode_m4">M4: Final</span>
+            </div>
+        </div>
+
+        <!-- Top Wizard Navigation Bar (Hidden in Full Sheet mode & Print) -->
+        <nav class="wizard-header" aria-label="Form progress">
+            <div class="wizard-meta-row">
+                <span class="wizard-page-label" id="wizardPageLabel">Page 1 of 5</span>
+                <span class="wizard-step-name" id="wizardStepName">1. Team Charter &amp; Agreement</span>
+                <span class="wizard-pct-label" id="wizardPctLabel">20%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="wizardProgressFill"></div>
+            </div>
+            <div class="step-pills-row">
+                <button type="button" class="step-pill active" data-page="1" onclick="window.goToPage(1)">1. Charter</button>
+                <button type="button" class="step-pill" data-page="2" onclick="window.goToPage(2)">2. M1 Idea</button>
+                <button type="button" class="step-pill" data-page="3" onclick="window.goToPage(3)">3. M2&ndash;3 Plan</button>
+                <button type="button" class="step-pill" data-page="4" onclick="window.goToPage(4)">4. M4 Final</button>
+                <button type="button" class="step-pill" data-page="5" onclick="window.goToPage(5)">5. Self-Check &amp; Stuck</button>
+            </div>
+        </nav>
+
+        <!-- ======================================================================
+             PAGE 1 — 1. TEAM CHARTER & AGREEMENT
+             ====================================================================== -->
+        <section class="form-page active-page" id="formPage_1">
+            <div class="section-header">
+                <h2 class="section-title">1. Team Charter &amp; Agreement</h2>
+            </div>
+            <p class="section-instruction">Enter your group info, adjust team size (1&ndash;8), set a shared goal, and confirm member agreement.</p>
+
+            <div class="charter-top-grid">
+                <div>
+                    <label class="field-label" for="groupName">Group Name / Number</label>
+                    <input type="text" id="groupName" placeholder="e.g. Bio Lab Group 4" oninput="window.updateField('groupName', this.value)">
+                    <div class="print-mirror" id="pm_groupName"></div>
+                </div>
+                <div>
+                    <label class="field-label" for="docDate">Date</label>
+                    <input type="date" id="docDate" oninput="window.updateField('docDate', this.value)">
+                    <div class="print-mirror" id="pm_docDate"></div>
+                </div>
+                <div>
+                    <span class="field-label">Team Size</span>
+                    <div class="stepper-ctrl">
+                        <button type="button" class="stepper-btn" aria-label="Decrease team size" onclick="window.changeTeamSize(-1)">&minus;</button>
+                        <span class="stepper-count" id="teamSizeDisplay">4</span>
+                        <button type="button" class="stepper-btn" aria-label="Increase team size" onclick="window.changeTeamSize(1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="roster-grid" id="memberRosterGrid"></div>
+
+            <div class="goal-row">
+                <label class="field-label" for="groupGoal">Group Goal (50 words max)</label>
+                <div class="wc-wrap">
+                    <input type="text" id="groupGoal" data-max="50" placeholder="What does our team want to accomplish together?" oninput="window.handleFieldWordLimit(this, 'groupGoal')">
+                    <span class="wc-pill" id="wc_groupGoal">0 / 50 words</span>
+                </div>
+                <div class="print-mirror" id="pm_groupGoal"></div>
+            </div>
+
+            <div class="decision-row">
+                <span class="field-label" style="margin-bottom: 0;">Decision Method</span>
+                <div class="pill-choice-group">
+                    <button type="button" class="choice-pill" id="decBtn_Consensus" onclick="window.setDecisionMethod('Consensus')">Consensus</button>
+                    <button type="button" class="choice-pill" id="decBtn_Majority" onclick="window.setDecisionMethod('Majority Vote')">Majority Vote</button>
+                </div>
+                <div class="print-mirror" id="pm_decisionMethod"></div>
+            </div>
+
+            <div class="agreement-panel">
+                <span class="field-label" style="margin-bottom: 0;">Member Agreement Initials (Check each member who agrees)</span>
+                <div class="agreement-pills" id="memberAgreementContainer"></div>
+            </div>
+
+            <div class="page-footer-nav">
+                <button type="button" class="nav-action-btn secondary" disabled>&larr; Back</button>
+                <div class="page-dots">
+                    <span class="page-dot active"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                </div>
+                <button type="button" class="nav-action-btn primary" onclick="window.goToPage(2)">Next: 2. M1 Idea &rarr;</button>
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             PAGE 2 — 2. MILESTONE 1: IDEA DEVELOPMENT
+             ====================================================================== -->
+        <section class="form-page" id="formPage_2">
+            <div class="section-header">
+                <h2 class="section-title">2. Milestone 1: Idea Development</h2>
+                <div class="timer-bar" id="timerBar">
+                    <span class="timer-display" id="timerDisplay">02:00</span>
+                    <button type="button" class="timer-btn primary" id="timerStartPauseBtn" onclick="window.toggleTimer()">Start</button>
+                    <button type="button" class="timer-btn" onclick="window.setTimer(120)">2m Think</button>
+                    <button type="button" class="timer-btn" onclick="window.setTimer(60)">1m Share</button>
+                    <button type="button" class="timer-btn" onclick="window.resetTimer()">Reset</button>
+                </div>
+            </div>
+            <p class="section-instruction">Think silently for 2 min, then share for 1 min each without interrupting (30 words max per box).</p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 18%;">Member</th>
+                            <th style="width: 31%;">One Thing I Understand</th>
+                            <th style="width: 31%;">One Question or Confusion</th>
+                            <th style="width: 20%;">Teammate Who Can Help</th>
+                        </tr>
+                    </thead>
+                    <tbody id="m1TableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="two-col-grid">
+                <div>
+                    <label class="field-label" for="understandAll">What do we all understand? (50 words max)</label>
+                    <div class="wc-wrap">
+                        <textarea id="understandAll" rows="2" data-max="50" placeholder="Key ideas our whole group understands..." oninput="window.handleFieldWordLimit(this, 'understandAll')"></textarea>
+                        <span class="wc-pill" id="wc_understandAll">0 / 50 words</span>
+                    </div>
+                    <div class="print-mirror" id="pm_understandAll"></div>
+                </div>
+                <div>
+                    <label class="field-label" for="teacherQuestions">Questions we need to ask the teacher (50 words max)</label>
+                    <div class="wc-wrap">
+                        <textarea id="teacherQuestions" rows="2" data-max="50" placeholder="Questions we still need clarified..." oninput="window.handleFieldWordLimit(this, 'teacherQuestions')"></textarea>
+                        <span class="wc-pill" id="wc_teacherQuestions">0 / 50 words</span>
+                    </div>
+                    <div class="print-mirror" id="pm_teacherQuestions"></div>
+                </div>
+            </div>
+
+            <div class="spoke-row">
+                <span class="field-label" style="margin-bottom: 0;">Group Check: Did everyone speak at least once?</span>
+                <div class="pill-choice-group">
+                    <button type="button" class="choice-pill" id="spokeBtn_Yes" onclick="window.setEveryoneSpoke('Yes')">Yes</button>
+                    <button type="button" class="choice-pill" id="spokeBtn_No" onclick="window.setEveryoneSpoke('No')">No</button>
+                </div>
+                <div class="print-mirror" id="pm_everyoneSpoke"></div>
+            </div>
+
+            <div class="page-footer-nav">
+                <button type="button" class="nav-action-btn secondary" onclick="window.goToPage(1)">&larr; Back</button>
+                <div class="page-dots">
+                    <span class="page-dot"></span>
+                    <span class="page-dot active"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                </div>
+                <button type="button" class="nav-action-btn primary" onclick="window.goToPage(3)">Next: 3. M2&ndash;3 Plan &rarr;</button>
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             PAGE 3 — 3. MILESTONES 2 & 3: TASK & TIME CONSTRAINT ASSIGNMENTS
+             ====================================================================== -->
+        <section class="form-page" id="formPage_3">
+            <div class="section-header">
+                <h2 class="section-title">3. Milestones 2 &amp; 3: Task &amp; Time Constraint Assignments</h2>
+            </div>
+            <p class="section-instruction">Assign each member a concrete deliverable, a deadline/time limit, and a peer reviewer (30 words max per cell).</p>
+
+            <div class="table-wrap" style="margin-bottom: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 18%;">Member</th>
+                            <th style="width: 32%;">Assigned Task &amp; Deliverable</th>
+                            <th style="width: 30%;">Time Constraint / Target Timeline</th>
+                            <th style="width: 20%;">Peer Checker</th>
+                        </tr>
+                    </thead>
+                    <tbody id="m23TableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="page-footer-nav">
+                <button type="button" class="nav-action-btn secondary" onclick="window.goToPage(2)">&larr; Back</button>
+                <div class="page-dots">
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot active"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                </div>
+                <button type="button" class="nav-action-btn primary" onclick="window.goToPage(4)">Next: 4. M4 Final &rarr;</button>
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             PAGE 4 — 4. MILESTONE 4: FINAL CHECK, REFLECTION & TEACHER SIGN-OFF
+             ====================================================================== -->
+        <section class="form-page" id="formPage_4">
+            <div class="section-header">
+                <h2 class="section-title">4. Milestone 4: Final Check, Reflection &amp; Teacher Sign-Off</h2>
+            </div>
+            <p class="section-instruction">Verify final readiness together, reflect on teamwork, and get teacher sign-off.</p>
+
+            <div class="checklist-panel">
+                <label class="checklist-item">
+                    <input type="checkbox" id="chk_review" onchange="window.updateField('chk_review', this.checked)">
+                    <span>Every member has reviewed the entire final report (not just their own part).</span>
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox" id="chk_explain" onchange="window.updateField('chk_explain', this.checked)">
+                    <span>Every member can explain our setup and results in their own words.</span>
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox" id="chk_feedback" onchange="window.updateField('chk_feedback', this.checked)">
+                    <span>We resolved all teacher and peer feedback from the draft stage.</span>
+                </label>
+            </div>
+
+            <div class="two-col-grid">
+                <div>
+                    <label class="field-label" for="reflectionWell">One thing our group did well together (50 words max)</label>
+                    <div class="wc-wrap">
+                        <textarea id="reflectionWell" rows="2" data-max="50" placeholder="Highlight a teamwork strength..." oninput="window.handleFieldWordLimit(this, 'reflectionWell')"></textarea>
+                        <span class="wc-pill" id="wc_reflectionWell">0 / 50 words</span>
+                    </div>
+                    <div class="print-mirror" id="pm_reflectionWell"></div>
+                </div>
+                <div>
+                    <label class="field-label" for="reflectionDifferent">One thing we would do differently next time (50 words max)</label>
+                    <div class="wc-wrap">
+                        <textarea id="reflectionDifferent" rows="2" data-max="50" placeholder="Note one workflow improvement..." oninput="window.handleFieldWordLimit(this, 'reflectionDifferent')"></textarea>
+                        <span class="wc-pill" id="wc_reflectionDifferent">0 / 50 words</span>
+                    </div>
+                    <div class="print-mirror" id="pm_reflectionDifferent"></div>
+                </div>
+            </div>
+
+            <!-- Single Consolidated Teacher Check-Off Bar -->
+            <div class="teacher-signoff-bar" id="teacherSignoffBar">
+                <span class="teacher-bar-label">Teacher Check-Off</span>
+                <div class="milestone-pills">
+                    <label class="ms-check-pill" id="msPill_m1">
+                        <input type="checkbox" id="tc_m1" onchange="window.toggleMilestoneCheck('tc_m1', 'msPill_m1', this.checked)"> M1: Idea
+                    </label>
+                    <label class="ms-check-pill" id="msPill_m23">
+                        <input type="checkbox" id="tc_m23" onchange="window.toggleMilestoneCheck('tc_m23', 'msPill_m23', this.checked)"> M2&ndash;3: Plan
+                    </label>
+                    <label class="ms-check-pill" id="msPill_m4">
+                        <input type="checkbox" id="tc_m4" onchange="window.toggleMilestoneCheck('tc_m4', 'msPill_m4', this.checked)"> M4: Final
+                    </label>
+                </div>
+                <div class="teacher-status-group">
+                    <button type="button" class="status-toggle-btn pass" id="verdictPassBtn" onclick="window.setTeacherVerdict('PASS')">PASS</button>
+                    <button type="button" class="status-toggle-btn revise" id="verdictReviseBtn" onclick="window.setTeacherVerdict('REVISE')">REVISE</button>
+                    <input type="text" class="teacher-initials" id="teacherInitials" maxlength="6" placeholder="Initials" oninput="window.updateField('teacherInitials', this.value.toUpperCase())">
+                    <div class="print-mirror" id="pm_teacherVerdict"></div>
+                </div>
+            </div>
+
+            <div class="page-footer-nav">
+                <button type="button" class="nav-action-btn secondary" onclick="window.goToPage(3)">&larr; Back</button>
+                <div class="page-dots">
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot active"></span>
+                    <span class="page-dot"></span>
+                </div>
+                <button type="button" class="nav-action-btn primary" onclick="window.goToPage(5)">Next: 5. Self-Check &amp; Stuck &rarr;</button>
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             PAGE 5 — 5. SELF-CHECK PARTICIPATION & "STUCK" PROTOCOL
+             ====================================================================== -->
+        <section class="form-page" id="formPage_5">
+            <div class="private-selfcheck-block" id="privateSelfCheckBlock">
+                <div class="section-header">
+                    <h2 class="section-title">5. Self-Check Participation &amp; &ldquo;Stuck&rdquo; Protocol</h2>
+                </div>
+                <p class="section-instruction">Privately score each member&rsquo;s contribution (0&ndash;5 pts per milestone) on your own device.</p>
+
+                <div class="privacy-banner" role="note">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <span><strong>Private to this device only &mdash; never synced to teammates.</strong> Your ratings stay strictly in this browser.</span>
+                </div>
+
+                <div class="evaluator-bar">
+                    <div class="evaluator-field">
+                        <label for="privateEvaluatorSelect">Who is filling out this device?</label>
+                        <select id="privateEvaluatorSelect" onchange="window.updatePrivateEvaluator(this.value)"></select>
+                        <div class="print-mirror" id="pm_privateEvaluator"></div>
+                    </div>
+                    <label class="print-private-toggle">
+                        <input type="checkbox" id="includePrivateInPrint" checked onchange="window.toggleIncludePrivateInPrint(this.checked)">
+                        <span>Include private Self-Check when printing</span>
+                    </label>
+                </div>
+
+                <div class="rubric-bar">
+                    5 = Great help &amp; completed task &nbsp;|&nbsp; 3&ndash;4 = Completed task &nbsp;|&nbsp; 1&ndash;2 = Needed prompting &nbsp;|&nbsp; 0 = Did not participate
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 18%;">Member</th>
+                                <th style="width: 9%; text-align: center;">M1 (/5)</th>
+                                <th style="width: 9%; text-align: center;">M2 (/5)</th>
+                                <th style="width: 9%; text-align: center;">M3 (/5)</th>
+                                <th style="width: 9%; text-align: center;">M4 (/5)</th>
+                                <th style="width: 11%; text-align: center;">Total</th>
+                                <th style="width: 14%; text-align: center;">Tier</th>
+                                <th style="width: 21%;">Private Note (30w max)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selfCheckTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="section-divider"></div>
+            </div>
+
+            <h3 class="sub-heading">&ldquo;Stuck&rdquo; Protocol (Ask 3 Before Me)</h3>
+
+            <div class="stuck-grid">
+                <div class="stuck-step-card">
+                    <strong>1. Name It</strong>
+                    Say out loud: &ldquo;I am stuck on ______ because ______.&rdquo;
+                </div>
+                <div class="stuck-step-card">
+                    <strong>2. Team Pivot</strong>
+                    Teammates offer a different explanation or assign a smaller micro-task.
+                </div>
+                <div class="stuck-step-card">
+                    <strong>3. Teacher Check</strong>
+                    If still blocked after asking all teammates, raise hands together.
+                </div>
+            </div>
+
+            <div>
+                <label class="field-label" for="stuckLog">&ldquo;Stuck&rdquo; Blocker &amp; Team Pivot Log (60 words max)</label>
+                <div class="wc-wrap">
+                    <textarea id="stuckLog" rows="2" data-max="60" placeholder="Log what blocked the team, how teammates pivoted, or what you asked the teacher..." oninput="window.handleFieldWordLimit(this, 'stuckLog')"></textarea>
+                    <span class="wc-pill" id="wc_stuckLog">0 / 60 words</span>
+                </div>
+                <div class="print-mirror" id="pm_stuckLog"></div>
+            </div>
+
+            <div class="tester-feedback-grid">
+                <div>
+                    <span class="field-label">Was it clear what to do first?</span>
+                    <div class="pill-choice-group">
+                        <button type="button" class="choice-pill" id="fbBtn_Yes" onclick="window.setFbClear('Yes')">Yes</button>
+                        <button type="button" class="choice-pill" id="fbBtn_Somewhat" onclick="window.setFbClear('Somewhat')">Somewhat</button>
+                        <button type="button" class="choice-pill" id="fbBtn_No" onclick="window.setFbClear('No')">No</button>
+                    </div>
+                    <div class="print-mirror" id="pm_fbClear"></div>
+                </div>
+                <div>
+                    <label class="field-label" for="fbConfusing">Anything confusing or unnecessary? (30 words max)</label>
+                    <div class="wc-wrap">
+                        <input type="text" id="fbConfusing" data-max="30" placeholder="Optional quick feedback..." oninput="window.handleFieldWordLimit(this, 'fbConfusing')">
+                        <span class="wc-pill" id="wc_fbConfusing">0 / 30 words</span>
+                    </div>
+                    <div class="print-mirror" id="pm_fbConfusing"></div>
+                </div>
+            </div>
+
+            <div class="page-footer-nav">
+                <button type="button" class="nav-action-btn secondary" onclick="window.goToPage(4)">&larr; Back</button>
+                <div class="page-dots">
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot"></span>
+                    <span class="page-dot active"></span>
+                </div>
+                <div class="toolbar-group">
+                    <button type="button" class="nav-action-btn secondary" onclick="window.setViewMode('full')">Review Full Sheet</button>
+                    <button type="button" class="nav-action-btn primary" onclick="window.triggerPrint()">Print / PDF</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom-Right Toast Notification -->
+    <div class="toast-notification" id="toastBox" role="status" aria-live="polite"></div>
+
+    <!-- ==========================================================================
+         BROWSER-NATIVE FIREBASE v11.0.2 + SELF-CONTAINED APPLICATION LOGIC
+         ========================================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // Your exact Firebase Web App configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdD5p_JqPGT8lZiU1bGGDBqEMCdO-xgyo",
+            authDomain: "group-progress-plan.firebaseapp.com",
+            projectId: "group-progress-plan",
+            storageBucket: "group-progress-plan.firebasestorage.app",
+            messagingSenderId: "311080106400",
+            appId: "1:311080106400:web:1419cba9578ad14ad94cc5"
+        };
+
+        /* ==========================================================================
+           1. FAIL-SAFE STORAGE WRAPPERS (SANDBOX & STRICT FILE:// COMPATIBLE)
+           ========================================================================== */
+        const SHARED_STORAGE_KEY = 'gpp_workspace_v4';
+        const memoryStorage = {};
+        let isStorageSandboxed = false;
+
+        function safeGetItem(key) {
+            try {
+                return window.localStorage.getItem(key);
+            } catch (err) {
+                isStorageSandboxed = true;
+                return Object.prototype.hasOwnProperty.call(memoryStorage, key) ? memoryStorage[key] : null;
+            }
+        }
+
+        function safeSetItem(key, value) {
+            try {
+                window.localStorage.setItem(key, value);
+                return true;
+            } catch (err) {
+                isStorageSandboxed = true;
+                memoryStorage[key] = String(value);
+                return false;
+            }
+        }
+
+        function safeRemoveItem(key) {
+            try {
+                window.localStorage.removeItem(key);
+            } catch (err) {
+                delete memoryStorage[key];
+            }
+        }
+
+        function safeGetAllKeys() {
+            try {
+                const keys = [];
+                for (let i = 0; i < window.localStorage.length; i++) {
+                    keys.push(window.localStorage.key(i));
+                }
+                return keys;
+            } catch (err) {
+                return Object.keys(memoryStorage);
+            }
+        }
+
+        function getSessionId() {
+            const key = 'gpp_tab_session_id';
+            try {
+                let sid = window.sessionStorage.getItem(key);
+                if (!sid) {
+                    sid = 'u_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now().toString(36);
+                    window.sessionStorage.setItem(key, sid);
+                }
+                return sid;
+            } catch (e) {
+                return 'u_' + Math.random().toString(36).slice(2, 11);
+            }
+        }
+
+        const CLIENT_SESSION_ID = getSessionId();
+
+        /* ==========================================================================
+           2. APPLICATION STATE (SHARED GROUP PLAN VS DEVICE-PRIVATE SELF-CHECK)
+           ========================================================================== */
+        const PAGE_TITLES = {
+            1: '1. Team Charter & Agreement',
+            2: '2. Milestone 1: Idea Development',
+            3: '3. Milestones 2 & 3: Task & Time Constraints',
+            4: '4. Milestone 4: Final Check & Teacher Sign-Off',
+            5: '5. Private Self-Check & "Stuck" Protocol'
+        };
+
+        function createBlankSharedMember() {
+            return {
+                name: '',
+                agreed: false,
+                m1Understand: '',
+                m1Question: '',
+                m1Helper: '',
+                m23Task: '',
+                m23Timeline: '',
+                m23Peer: ''
+            };
+        }
+
+        function createBlankPrivateMember() {
+            return {
+                scores: [5, 5, 5, 5],
+                note: ''
+            };
+        }
+
+        function createInitialSharedState() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+
+            return {
+                viewMode: 'paged',
+                currentPage: 1,
+                teamSize: 4,
+                members: Array.from({ length: 8 }, createBlankSharedMember),
+                fields: {
+                    groupName: '',
+                    docDate: `${yyyy}-${mm}-${dd}`,
+                    groupGoal: '',
+                    decisionMethod: '',
+                    understandAll: '',
+                    teacherQuestions: '',
+                    everyoneSpoke: '',
+                    chk_review: false,
+                    chk_explain: false,
+                    chk_feedback: false,
+                    reflectionWell: '',
+                    reflectionDifferent: '',
+                    tc_m1: false,
+                    tc_m23: false,
+                    tc_m4: false,
+                    teacherVerdict: '',
+                    teacherInitials: '',
+                    stuckLog: '',
+                    fbClear: '',
+                    fbConfusing: ''
+                }
+            };
+        }
+
+        function createInitialPrivateState() {
+            return {
+                evaluator: 'prefer_not',
+                includeInPrint: true,
+                members: Array.from({ length: 8 }, createBlankPrivateMember)
+            };
+        }
+
+        let state = createInitialSharedState();
+        let privateState = createInitialPrivateState();
+        let isTeacherMode = false;
+        let saveDebounceTimer = null;
+        let cloudSyncTimer = null;
+        let presenceHeartbeatTimer = null;
+        let toastTimer = null;
+
+        // Live Firebase Firestore state
+        let fbApp = null;
+        let fbDb = null;
+        let fbAuth = null;
+        let fbUser = null;
+        let activeRoomCode = '';
+        let unsubscribeRoom = null;
+        let isApplyingRemoteUpdate = false;
+        let latestCollaboratorCount = 1;
+
+        // Timer state
+        let timerInterval = null;
+        let timerSeconds = 120;
+        let lastTimerPreset = 120;
+
+        function getPrivateStorageKey() {
+            const suffix = activeRoomCode ? activeRoomCode.toLowerCase() : 'local';
+            return `gpp_private_selfcheck_${suffix}`;
+        }
+
+        function loadPrivateSelfCheck() {
+            const base = createInitialPrivateState();
+            const raw = safeGetItem(getPrivateStorageKey());
+            if (!raw) {
+                privateState = base;
+                return;
+            }
+            try {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object') {
+                    base.evaluator = parsed.evaluator || 'prefer_not';
+                    base.includeInPrint = parsed.includeInPrint !== false;
+                    if (Array.isArray(parsed.members)) {
+                        for (let i = 0; i < 8; i++) {
+                            const item = parsed.members[i] || {};
+                            base.members[i] = {
+                                scores: Array.isArray(item.scores) && item.scores.length >= 4
+                                    ? item.scores.slice(0, 4).map(v => Math.max(0, Math.min(5, parseInt(v, 10) || 0)))
+                                    : [5, 5, 5, 5],
+                                note: typeof item.note === 'string' ? item.note : ''
+                            };
+                        }
+                    }
+                }
+            } catch (e) {
+                // Ignore malformed private JSON
+            }
+            privateState = base;
+        }
+
+        function savePrivateSelfCheck() {
+            safeSetItem(getPrivateStorageKey(), JSON.stringify(privateState));
+        }
+
+        function loadAndMigrateState() {
+            let raw = safeGetItem(SHARED_STORAGE_KEY);
+            if (!raw) {
+                const legacyKeys = ['gpp_workspace_v3', 'gpp_workspace_v2', 'group_progress_plan_wizard_v1'];
+                const allKeys = safeGetAllKeys();
+                for (const k of allKeys) {
+                    if (k && (k.includes('gpp_workspace') || k.includes('group_progress')) && !legacyKeys.includes(k)) {
+                        legacyKeys.push(k);
+                    }
+                }
+                for (const lk of legacyKeys) {
+                    const candidate = safeGetItem(lk);
+                    if (candidate) {
+                        raw = candidate;
+                        break;
+                    }
+                }
+            }
+
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') {
+                        const base = createInitialSharedState();
+                        state.viewMode = parsed.viewMode === 'full' ? 'full' : 'paged';
+                        state.currentPage = Math.max(1, Math.min(5, parseInt(parsed.currentPage, 10) || 1));
+                        state.teamSize = Math.max(1, Math.min(8, parseInt(parsed.teamSize, 10) || 4));
+                        if (Array.isArray(parsed.members)) {
+                            for (let i = 0; i < 8; i++) {
+                                const pm = parsed.members[i] || {};
+                                state.members[i] = Object.assign(createBlankSharedMember(), {
+                                    name: pm.name || '',
+                                    agreed: !!pm.agreed,
+                                    m1Understand: pm.m1Understand || '',
+                                    m1Question: pm.m1Question || '',
+                                    m1Helper: pm.m1Helper || '',
+                                    m23Task: pm.m23Task || '',
+                                    m23Timeline: pm.m23Timeline || '',
+                                    m23Peer: pm.m23Peer || ''
+                                });
+                                if (Array.isArray(pm.scores) && pm.scores.length >= 4) {
+                                    privateState.members[i].scores = pm.scores.slice(0, 4);
+                                }
+                            }
+                        }
+                        if (parsed.fields && typeof parsed.fields === 'object') {
+                            state.fields = Object.assign(base.fields, parsed.fields);
+                        }
+                    }
+                } catch (err) {
+                    // Ignore malformed saved JSON
+                }
+            }
+            loadPrivateSelfCheck();
+        }
+
+        /* ==========================================================================
+           3. AUTO-SAVE PILL, CLOUD SYNC & TOAST NOTIFICATIONS
+           ========================================================================== */
+        function formatTimeNow() {
+            const now = new Date();
+            let hours = now.getHours();
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            return `${hours}:${mins} ${ampm}`;
+        }
+
+        function updateAutoSaveLabel(statusState) {
+            const btn = document.getElementById('autoSaveBtn');
+            const label = document.getElementById('autoSaveText');
+            if (!btn || !label) return;
+
+            if (statusState === 'saving') {
+                btn.classList.add('saving');
+                label.textContent = 'Saving...';
+            } else {
+                btn.classList.remove('saving');
+                const timeStr = formatTimeNow();
+                label.textContent = isStorageSandboxed
+                    ? `Auto-Saved (Session) \u00B7 ${timeStr}`
+                    : `Auto-Saved \u00B7 ${timeStr}`;
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastBox');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.add('visible');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 2600);
+        }
+
+        function scheduleAutoSave(skipCloudSync) {
+            updateAutoSaveLabel('saving');
+            if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
+            saveDebounceTimer = setTimeout(() => {
+                safeSetItem(SHARED_STORAGE_KEY, JSON.stringify(state));
+                savePrivateSelfCheck();
+                updateAutoSaveLabel('saved');
+            }, 220);
+
+            if (!skipCloudSync && !isApplyingRemoteUpdate && activeRoomCode && fbDb && fbUser) {
+                if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+                cloudSyncTimer = setTimeout(() => {
+                    pushSharedStateToFirestore();
+                }, 280);
+            }
+        }
+
+        window.forceSave = function() {
+            if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
+            const savedToBrowser = safeSetItem(SHARED_STORAGE_KEY, JSON.stringify(state));
+            savePrivateSelfCheck();
+            if (activeRoomCode && fbDb && fbUser) {
+                pushSharedStateToFirestore();
+            }
+            updateAutoSaveLabel('saved');
+            showToast(activeRoomCode && fbUser ? `Saved & synced to ${activeRoomCode}` : (savedToBrowser ? 'Saved to browser' : 'Saved to session'));
+        };
+
+        /* ==========================================================================
+           3B. FIREBASE REAL-TIME MULTI-DEVICE SYNC (rooms/{roomCode})
+           ========================================================================== */
+        function setSyncPillState(mode, text, tooltip) {
+            const pill = document.getElementById('syncStatusPill');
+            const label = document.getElementById('syncStatusText');
+            if (!pill || !label) return;
+            pill.classList.remove('connected', 'connecting', 'error');
+            if (mode === 'connected') pill.classList.add('connected');
+            if (mode === 'connecting') pill.classList.add('connecting');
+            if (mode === 'error') pill.classList.add('error');
+            label.textContent = text;
+            if (tooltip) pill.setAttribute('title', tooltip);
+        }
+
+        function showFirebaseSetupHelp(err) {
+            const code = err && err.code ? String(err.code) : '';
+            const helpBanner = document.getElementById('firebaseHelpBanner');
+            const helpText = document.getElementById('firebaseHelpText');
+            let tip = 'Enable Anonymous Auth and Firestore Database in your Firebase Console to activate live multi-device sync.';
+
+            if (code.includes('operation-not-allowed') || code.includes('admin-restricted-operation')) {
+                tip = 'Firebase Action Needed: Go to Firebase Console -> Authentication -> Sign-in method and enable "Anonymous", then click Create / Join again.';
+            } else if (code.includes('permission-denied')) {
+                tip = 'Firestore Rules Needed: In Firebase Console -> Firestore Database -> Rules, allow read/write for authenticated users (request.auth != null).';
+            } else if (code.includes('unauthorized-domain')) {
+                tip = 'Domain Authorization Needed: Add your GitHub Pages domain under Firebase Console -> Authentication -> Settings -> Authorized domains.';
+            }
+
+            setSyncPillState('error', 'Sync Setup Needed (Local Mode)', tip);
+            if (helpBanner && helpText) {
+                helpText.innerHTML = `<strong>Live Sync Setup Tip:</strong> ${escapeHtml(tip)}`;
+                helpBanner.classList.add('visible');
+            }
+        }
+
+        async function ensureFirebaseReady() {
+            if (fbDb && fbUser) return true;
+            try {
+                if (!fbApp) {
+                    fbApp = initializeApp(firebaseConfig);
+                    fbAuth = getAuth(fbApp);
+                    fbDb = getFirestore(fbApp);
+                }
+                if (!fbUser) {
+                    const cred = await signInAnonymously(fbAuth);
+                    fbUser = cred.user;
+                }
+                return !!(fbDb && fbUser);
+            } catch (err) {
+                showFirebaseSetupHelp(err);
+                return false;
+            }
+        }
+
+        function sanitizeRoomCode(raw) {
+            return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 20);
+        }
+
+        function getRoomDocRef(code) {
+            return doc(fbDb, 'rooms', code);
+        }
+
+        function buildSharedPayload() {
+            // Strictly excludes privateState (Section 5 Self-Check never leaves device)
+            return {
+                teamSize: state.teamSize,
+                members: state.members.slice(0, 8).map(m => ({
+                    name: m.name || '',
+                    agreed: !!m.agreed,
+                    m1Understand: m.m1Understand || '',
+                    m1Question: m.m1Question || '',
+                    m1Helper: m.m1Helper || '',
+                    m23Task: m.m23Task || '',
+                    m23Timeline: m.m23Timeline || '',
+                    m23Peer: m.m23Peer || ''
+                })),
+                fields: { ...state.fields },
+                presence: {
+                    [CLIENT_SESSION_ID]: Date.now()
+                },
+                updatedAt: Date.now()
+            };
+        }
+
+        async function pushSharedStateToFirestore() {
+            if (!activeRoomCode || !fbDb || !fbUser) return;
+            try {
+                const docRef = getRoomDocRef(activeRoomCode);
+                await setDoc(docRef, buildSharedPayload(), { merge: true });
+            } catch (err) {
+                showFirebaseSetupHelp(err);
+            }
+        }
+
+        async function sendPresencePing() {
+            if (!activeRoomCode || !fbDb || !fbUser) return;
+            try {
+                const docRef = getRoomDocRef(activeRoomCode);
+                await setDoc(docRef, {
+                    presence: {
+                        [CLIENT_SESSION_ID]: Date.now()
+                    }
+                }, { merge: true });
+            } catch (e) {
+                // Silent heartbeat error handling
+            }
+        }
+
+        function computeActiveCollaborators(presenceMap) {
+            if (!presenceMap || typeof presenceMap !== 'object') return 1;
+            const now = Date.now();
+            let active = 0;
+            Object.keys(presenceMap).forEach(sid => {
+                const ts = Number(presenceMap[sid]) || 0;
+                if (now - ts < 70000) {
+                    active++;
+                }
+            });
+            return Math.max(1, active);
+        }
+
+        function applyRemoteSharedSnapshot(remoteData) {
+            if (!remoteData || typeof remoteData !== 'object') return;
+            isApplyingRemoteUpdate = true;
+
+            try {
+                const prevTeamSize = state.teamSize;
+                if (typeof remoteData.teamSize === 'number') {
+                    state.teamSize = Math.max(1, Math.min(8, remoteData.teamSize));
+                }
+
+                if (Array.isArray(remoteData.members)) {
+                    for (let i = 0; i < 8; i++) {
+                        const rm = remoteData.members[i] || {};
+                        state.members[i] = Object.assign(createBlankSharedMember(), {
+                            name: rm.name || '',
+                            agreed: !!rm.agreed,
+                            m1Understand: rm.m1Understand || '',
+                            m1Question: rm.m1Question || '',
+                            m1Helper: rm.m1Helper || '',
+                            m23Task: rm.m23Task || '',
+                            m23Timeline: rm.m23Timeline || '',
+                            m23Peer: rm.m23Peer || ''
+                        });
+                    }
+                }
+
+                if (remoteData.fields && typeof remoteData.fields === 'object') {
+                    state.fields = Object.assign(state.fields, remoteData.fields);
+                }
+
+                // Update top-level shared inputs safely (skip activeElement so cursor never jumps)
+                syncInputIfNotFocused('groupName', state.fields.groupName || '');
+                syncInputIfNotFocused('docDate', state.fields.docDate || '');
+                syncInputIfNotFocused('groupGoal', state.fields.groupGoal || '');
+                syncInputIfNotFocused('understandAll', state.fields.understandAll || '');
+                syncInputIfNotFocused('teacherQuestions', state.fields.teacherQuestions || '');
+                syncInputIfNotFocused('reflectionWell', state.fields.reflectionWell || '');
+                syncInputIfNotFocused('reflectionDifferent', state.fields.reflectionDifferent || '');
+                syncInputIfNotFocused('teacherInitials', state.fields.teacherInitials || '');
+                syncInputIfNotFocused('stuckLog', state.fields.stuckLog || '');
+                syncInputIfNotFocused('fbConfusing', state.fields.fbConfusing || '');
+
+                document.getElementById('decBtn_Consensus').classList.toggle('selected', state.fields.decisionMethod === 'Consensus');
+                document.getElementById('decBtn_Majority').classList.toggle('selected', state.fields.decisionMethod === 'Majority Vote');
+                document.getElementById('spokeBtn_Yes').classList.toggle('selected', state.fields.everyoneSpoke === 'Yes');
+                document.getElementById('spokeBtn_No').classList.toggle('selected', state.fields.everyoneSpoke === 'No');
+                document.getElementById('fbBtn_Yes').classList.toggle('selected', state.fields.fbClear === 'Yes');
+                document.getElementById('fbBtn_Somewhat').classList.toggle('selected', state.fields.fbClear === 'Somewhat');
+                document.getElementById('fbBtn_No').classList.toggle('selected', state.fields.fbClear === 'No');
+
+                document.getElementById('chk_review').checked = !!state.fields.chk_review;
+                document.getElementById('chk_explain').checked = !!state.fields.chk_explain;
+                document.getElementById('chk_feedback').checked = !!state.fields.chk_feedback;
+
+                document.getElementById('tc_m1').checked = !!state.fields.tc_m1;
+                document.getElementById('msPill_m1').classList.toggle('checked', !!state.fields.tc_m1);
+                document.getElementById('tc_m23').checked = !!state.fields.tc_m23;
+                document.getElementById('msPill_m23').classList.toggle('checked', !!state.fields.tc_m23);
+                document.getElementById('tc_m4').checked = !!state.fields.tc_m4;
+                document.getElementById('msPill_m4').classList.toggle('checked', !!state.fields.tc_m4);
+                updateRoadmapStrip();
+
+                document.getElementById('verdictPassBtn').classList.toggle('active', state.fields.teacherVerdict === 'PASS');
+                document.getElementById('verdictReviseBtn').classList.toggle('active', state.fields.teacherVerdict === 'REVISE');
+
+                if (prevTeamSize !== state.teamSize) {
+                    renderDynamicMemberSections();
+                } else {
+                    syncMemberRowValuesInPlace();
+                }
+
+                refreshAllWordBadges();
+                safeSetItem(SHARED_STORAGE_KEY, JSON.stringify(state));
+            } finally {
+                isApplyingRemoteUpdate = false;
+            }
+        }
+
+        function syncInputIfNotFocused(elId, newVal) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            if (document.activeElement !== el && el.value !== newVal) {
+                el.value = newVal;
+            }
+        }
+
+        function syncMemberRowValuesInPlace() {
+            for (let i = 0; i < state.teamSize; i++) {
+                const m = state.members[i];
+                const display = getMemberDisplayName(i);
+
+                syncInputIfNotFocused(`memberNameInput_${i}`, m.name || '');
+                syncInputIfNotFocused(`m1UndInput_${i}`, m.m1Understand || '');
+                syncInputIfNotFocused(`m1QInput_${i}`, m.m1Question || '');
+                syncInputIfNotFocused(`m23TaskInput_${i}`, m.m23Task || '');
+                syncInputIfNotFocused(`m23TimeInput_${i}`, m.m23Timeline || '');
+
+                const m1Sel = document.getElementById(`m1HelpSelect_${i}`);
+                if (m1Sel && document.activeElement !== m1Sel) m1Sel.value = m.m1Helper || '';
+
+                const m23Sel = document.getElementById(`m23PeerSelect_${i}`);
+                if (m23Sel && document.activeElement !== m23Sel) m23Sel.value = m.m23Peer || '';
+
+                const agreeCb = document.getElementById(`agreeCb_${i}`);
+                const agreePill = document.getElementById(`agreePill_${i}`);
+                if (agreeCb) agreeCb.checked = !!m.agreed;
+                if (agreePill) agreePill.classList.toggle('checked', !!m.agreed);
+
+                document.querySelectorAll(`.sync-member-${i}`).forEach(node => {
+                    node.textContent = display;
+                });
+                document.querySelectorAll(`select.teammate-select option[value="member_${i}"], #privateEvaluatorSelect option[value="member_${i}"]`).forEach(opt => {
+                    opt.textContent = display;
+                });
+            }
+        }
+
+        function updateRoomQueryParam(code) {
+            try {
+                const url = new URL(window.location.href);
+                if (code) {
+                    url.searchParams.set('room', code);
+                } else {
+                    url.searchParams.delete('room');
+                }
+                window.history.replaceState({}, '', url.toString());
+            } catch (e) {
+                // Ignore in strict sandboxed origins
+            }
+        }
+
+        async function connectToRoom(rawCode, silent) {
+            const code = sanitizeRoomCode(rawCode);
+            if (!code) {
+                if (!silent) showToast('Enter a short room code first (e.g. BIO-4)');
+                return;
+            }
+
+            if (unsubscribeRoom) {
+                unsubscribeRoom();
+                unsubscribeRoom = null;
+            }
+            if (presenceHeartbeatTimer) {
+                clearInterval(presenceHeartbeatTimer);
+                presenceHeartbeatTimer = null;
+            }
+
+            const inputEl = document.getElementById('roomCodeInput');
+            if (inputEl) inputEl.value = code;
+            setSyncPillState('connecting', `Connecting: ${code}...`, 'Connecting to Firebase Firestore...');
+
+            const ready = await ensureFirebaseReady();
+            if (!ready) {
+                activeRoomCode = '';
+                document.getElementById('joinRoomBtn').textContent = 'Create / Join';
+                return;
+            }
+
+            document.getElementById('firebaseHelpBanner').classList.remove('visible');
+            activeRoomCode = code;
+            updateRoomQueryParam(code);
+            loadPrivateSelfCheck();
+            renderPrivateSelfCheckSection();
+
+            const docRef = getRoomDocRef(code);
+            let initializedDoc = false;
+
+            unsubscribeRoom = onSnapshot(
+                docRef,
+                async (snap) => {
+                    const data = snap.exists() ? snap.data() : null;
+                    latestCollaboratorCount = computeActiveCollaborators(data ? data.presence : null);
+                    const onlineLabel = latestCollaboratorCount === 1 ? '1 online' : `${latestCollaboratorCount} online`;
+                    setSyncPillState('connected', `Live Sync: ${code} \u00B7 ${onlineLabel}`, 'Sections 1–4 sync live across devices. Section 5 remains private on this device.');
+                    document.getElementById('joinRoomBtn').textContent = 'Leave Room';
+
+                    if (data) {
+                        applyRemoteSharedSnapshot(data);
+                        if (!initializedDoc) {
+                            initializedDoc = true;
+                            sendPresencePing();
+                        }
+                    } else if (!initializedDoc) {
+                        initializedDoc = true;
+                        await pushSharedStateToFirestore();
+                    }
+                },
+                (err) => {
+                    showFirebaseSetupHelp(err);
+                    document.getElementById('joinRoomBtn').textContent = 'Create / Join';
+                }
+            );
+
+            presenceHeartbeatTimer = setInterval(() => {
+                sendPresencePing();
+            }, 25000);
+
+            if (!silent) {
+                showToast(`Joined live room ${code}`);
+            }
+        }
+
+        function disconnectFromRoom() {
+            if (unsubscribeRoom) {
+                unsubscribeRoom();
+                unsubscribeRoom = null;
+            }
+            if (presenceHeartbeatTimer) {
+                clearInterval(presenceHeartbeatTimer);
+                presenceHeartbeatTimer = null;
+            }
+            activeRoomCode = '';
+            updateRoomQueryParam('');
+            setSyncPillState('offline', 'Offline / Local Only', 'Enter a Room Code to sync Sections 1–4 across multiple devices.');
+            document.getElementById('joinRoomBtn').textContent = 'Create / Join';
+            loadPrivateSelfCheck();
+            renderPrivateSelfCheckSection();
+            showToast('Disconnected — switched to Local Mode');
+        }
+
+        window.joinOrLeaveRoom = function() {
+            const inputVal = sanitizeRoomCode(document.getElementById('roomCodeInput').value);
+            if (activeRoomCode && (!inputVal || inputVal === activeRoomCode)) {
+                disconnectFromRoom();
+            } else {
+                connectToRoom(inputVal, false);
+            }
+        };
+
+        window.copyRoomLink = function() {
+            const code = sanitizeRoomCode(document.getElementById('roomCodeInput').value) || activeRoomCode;
+            let shareUrl = window.location.href;
+            try {
+                const url = new URL(window.location.href);
+                if (code) url.searchParams.set('room', code);
+                shareUrl = url.toString();
+            } catch (e) {}
+
+            const temp = document.createElement('textarea');
+            temp.value = shareUrl;
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            let copied = false;
+            try {
+                copied = document.execCommand('copy');
+            } catch (e) {}
+            document.body.removeChild(temp);
+
+            if (!copied && navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareUrl).catch(() => {});
+            }
+            showToast(code ? `Copied invite link for room ${code}` : 'Copied page link');
+        };
+
+        /* ==========================================================================
+           4. PAGED FORM VS FULL SHEET SWITCHER & WIZARD NAVIGATION
+           ========================================================================== */
+        window.setViewMode = function(mode) {
+            state.viewMode = mode === 'full' ? 'full' : 'paged';
+            const isFull = state.viewMode === 'full';
+
+            document.body.classList.toggle('full-sheet-mode', isFull);
+            document.getElementById('modePagedBtn').classList.toggle('active', !isFull);
+            document.getElementById('modeFullBtn').classList.toggle('active', isFull);
+
+            if (!isFull) {
+                window.goToPage(state.currentPage || 1, true);
+            }
+            scheduleAutoSave(true);
+        };
+
+        window.goToPage = function(pageNum, skipSave) {
+            const target = Math.max(1, Math.min(5, parseInt(pageNum, 10) || 1));
+            state.currentPage = target;
+
+            for (let p = 1; p <= 5; p++) {
+                const pageEl = document.getElementById(`formPage_${p}`);
+                if (pageEl) {
+                    pageEl.classList.toggle('active-page', p === target);
+                }
+            }
+
+            document.querySelectorAll('.step-pill').forEach(pill => {
+                const p = parseInt(pill.getAttribute('data-page'), 10);
+                pill.classList.toggle('active', p === target);
+            });
+
+            const pct = target * 20;
+            document.getElementById('wizardPageLabel').textContent = `Page ${target} of 5`;
+            document.getElementById('wizardStepName').textContent = PAGE_TITLES[target] || '';
+            document.getElementById('wizardPctLabel').textContent = `${pct}%`;
+            document.getElementById('wizardProgressFill').style.width = `${pct}%`;
+
+            if (!skipSave) {
+                scheduleAutoSave(true);
+            }
+        };
+
+        /* ==========================================================================
+           5. PROGRESSIVE WORD COUNTERS (30, 50, 60 WORDS)
+           ========================================================================== */
+        function enforceWordCap(rawText, maxWords) {
+            if (!rawText) return { text: '', count: 0 };
+            const trimmed = rawText.trim();
+            if (!trimmed) return { text: rawText, count: 0 };
+
+            const words = trimmed.split(/\s+/);
+            if (words.length > maxWords) {
+                return {
+                    text: words.slice(0, maxWords).join(' '),
+                    count: maxWords
+                };
+            }
+            return {
+                text: rawText,
+                count: words.length
+            };
+        }
+
+        function renderWordBadge(pillEl, count, maxWords) {
+            if (!pillEl) return;
+            pillEl.textContent = `${count} / ${maxWords} words`;
+            pillEl.classList.remove('visible-threshold', 'near-limit', 'at-limit');
+
+            const ratio = maxWords > 0 ? count / maxWords : 0;
+            if (count >= maxWords) {
+                pillEl.classList.add('at-limit');
+            } else if (ratio >= 0.85) {
+                pillEl.classList.add('near-limit');
+            } else if (ratio >= 0.70) {
+                pillEl.classList.add('visible-threshold');
+            }
+        }
+
+        window.handleFieldWordLimit = function(el, fieldKey) {
+            const max = parseInt(el.getAttribute('data-max'), 10) || 30;
+            const res = enforceWordCap(el.value, max);
+            if (el.value !== res.text) {
+                el.value = res.text;
+            }
+            state.fields[fieldKey] = el.value;
+            renderWordBadge(document.getElementById(`wc_${fieldKey}`), res.count, max);
+            scheduleAutoSave();
+        };
+
+        window.handleMemberWordLimit = function(el, memberIdx, propKey) {
+            const max = parseInt(el.getAttribute('data-max'), 10) || 30;
+            const res = enforceWordCap(el.value, max);
+            if (el.value !== res.text) {
+                el.value = res.text;
+            }
+            state.members[memberIdx][propKey] = el.value;
+            renderWordBadge(document.getElementById(`wc_${propKey}_${memberIdx}`), res.count, max);
+            scheduleAutoSave();
+        };
+
+        window.handlePrivateNoteWordLimit = function(el, memberIdx) {
+            const max = parseInt(el.getAttribute('data-max'), 10) || 30;
+            const res = enforceWordCap(el.value, max);
+            if (el.value !== res.text) {
+                el.value = res.text;
+            }
+            privateState.members[memberIdx].note = el.value;
+            renderWordBadge(document.getElementById(`wc_privNote_${memberIdx}`), res.count, max);
+            savePrivateSelfCheck();
+            updateAutoSaveLabel('saved');
+        };
+
+        function refreshAllWordBadges() {
+            document.querySelectorAll('[data-max]').forEach(el => {
+                const max = parseInt(el.getAttribute('data-max'), 10) || 30;
+                const trimmed = el.value.trim();
+                const count = trimmed ? trimmed.split(/\s+/).length : 0;
+                const pill = el.parentElement ? el.parentElement.querySelector('.wc-pill') : null;
+                renderWordBadge(pill, count, max);
+            });
+        }
+
+        /* ==========================================================================
+           6. DYNAMIC TEAM SIZE (1-8) & CROSS-PAGE MEMBER SYNCING
+           ========================================================================== */
+        function getMemberDisplayName(idx) {
+            const raw = state.members[idx] && state.members[idx].name ? state.members[idx].name.trim() : '';
+            return raw || `Member ${idx + 1}`;
+        }
+
+        window.changeTeamSize = function(delta) {
+            const next = Math.max(1, Math.min(8, state.teamSize + delta));
+            if (next === state.teamSize) return;
+            state.teamSize = next;
+            document.getElementById('teamSizeDisplay').textContent = String(next);
+            renderDynamicMemberSections();
+            scheduleAutoSave();
+        };
+
+        window.updateMemberName = function(idx, val) {
+            state.members[idx].name = val;
+            const display = getMemberDisplayName(idx);
+
+            document.querySelectorAll(`.sync-member-${idx}`).forEach(node => {
+                node.textContent = display;
+            });
+
+            document.querySelectorAll(`select.teammate-select option[value="member_${idx}"], #privateEvaluatorSelect option[value="member_${idx}"]`).forEach(opt => {
+                opt.textContent = display;
+            });
+
+            scheduleAutoSave();
+        };
+
+        window.toggleMemberAgree = function(idx, checked) {
+            state.members[idx].agreed = checked;
+            const pill = document.getElementById(`agreePill_${idx}`);
+            if (pill) pill.classList.toggle('checked', checked);
+            scheduleAutoSave();
+        };
+
+        window.updateMemberDropdown = function(idx, propKey, val) {
+            state.members[idx][propKey] = val;
+            scheduleAutoSave();
+        };
+
+        window.updatePrivateEvaluator = function(val) {
+            privateState.evaluator = val;
+            savePrivateSelfCheck();
+            updateAutoSaveLabel('saved');
+        };
+
+        window.toggleIncludePrivateInPrint = function(checked) {
+            privateState.includeInPrint = checked;
+            document.body.classList.toggle('exclude-private-print', !checked);
+            savePrivateSelfCheck();
+            updateAutoSaveLabel('saved');
+        };
+
+        window.updatePrivateScore = function(idx, milestoneIdx, val) {
+            let num = parseInt(val, 10);
+            if (isNaN(num)) num = 0;
+            num = Math.max(0, Math.min(5, num));
+            privateState.members[idx].scores[milestoneIdx] = num;
+            updatePrivateScoreRow(idx);
+            savePrivateSelfCheck();
+            updateAutoSaveLabel('saved');
+        };
+
+        function buildTeammateOptionsHTML(excludeIdx, selectedVal) {
+            let html = `<option value="">Select teammate...</option>`;
+            for (let i = 0; i < state.teamSize; i++) {
+                if (i === excludeIdx) continue;
+                const val = `member_${i}`;
+                const sel = selectedVal === val ? 'selected' : '';
+                html += `<option value="${val}" ${sel}>${escapeHtml(getMemberDisplayName(i))}</option>`;
+            }
+            return html;
+        }
+
+        function renderPrivateSelfCheckSection() {
+            const count = state.teamSize;
+
+            const evalSelect = document.getElementById('privateEvaluatorSelect');
+            if (evalSelect) {
+                let opts = `<option value="prefer_not">Prefer not to label</option>`;
+                for (let i = 0; i < count; i++) {
+                    const val = `member_${i}`;
+                    opts += `<option value="${val}">${escapeHtml(getMemberDisplayName(i))}</option>`;
+                }
+                evalSelect.innerHTML = opts;
+                evalSelect.value = privateState.evaluator || 'prefer_not';
+            }
+
+            const incCb = document.getElementById('includePrivateInPrint');
+            if (incCb) {
+                incCb.checked = privateState.includeInPrint !== false;
+                document.body.classList.toggle('exclude-private-print', !incCb.checked);
+            }
+
+            const scBody = document.getElementById('selfCheckTableBody');
+            if (!scBody) return;
+            scBody.innerHTML = '';
+
+            for (let i = 0; i < count; i++) {
+                const pm = privateState.members[i] || createBlankPrivateMember();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="member-cell"><span class="sync-member-${i}">${escapeHtml(getMemberDisplayName(i))}</span></td>
+                    <td style="text-align: center;">
+                        <input type="number" class="score-input" min="0" max="5" value="${pm.scores[0]}" oninput="window.updatePrivateScore(${i}, 0, this.value)">
+                        <div class="print-mirror" id="pm_sc_${i}_0" style="text-align:center;"></div>
+                    </td>
+                    <td style="text-align: center;">
+                        <input type="number" class="score-input" min="0" max="5" value="${pm.scores[1]}" oninput="window.updatePrivateScore(${i}, 1, this.value)">
+                        <div class="print-mirror" id="pm_sc_${i}_1" style="text-align:center;"></div>
+                    </td>
+                    <td style="text-align: center;">
+                        <input type="number" class="score-input" min="0" max="5" value="${pm.scores[2]}" oninput="window.updatePrivateScore(${i}, 2, this.value)">
+                        <div class="print-mirror" id="pm_sc_${i}_2" style="text-align:center;"></div>
+                    </td>
+                    <td style="text-align: center;">
+                        <input type="number" class="score-input" min="0" max="5" value="${pm.scores[3]}" oninput="window.updatePrivateScore(${i}, 3, this.value)">
+                        <div class="print-mirror" id="pm_sc_${i}_3" style="text-align:center;"></div>
+                    </td>
+                    <td style="text-align: center;" class="total-cell" id="totalCell_${i}">20 / 20</td>
+                    <td style="text-align: center;"><span class="tier-badge tier-outstanding" id="tierBadge_${i}">Outstanding</span></td>
+                    <td>
+                        <div class="wc-wrap">
+                            <input type="text" data-max="30" value="${escapeHtml(pm.note)}" placeholder="Private note..." oninput="window.handlePrivateNoteWordLimit(this, ${i})">
+                            <span class="wc-pill" id="wc_privNote_${i}">0 / 30 words</span>
+                        </div>
+                        <div class="print-mirror" id="pm_privNote_${i}"></div>
+                    </td>
+                `;
+                scBody.appendChild(tr);
+                updatePrivateScoreRow(i);
+            }
+            refreshAllWordBadges();
+        }
+
+        function renderDynamicMemberSections() {
+            const count = state.teamSize;
+            document.getElementById('teamSizeDisplay').textContent = String(count);
+
+            // 1. Page 1 Member Name Inputs Grid
+            const rosterGrid = document.getElementById('memberRosterGrid');
+            rosterGrid.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const m = state.members[i];
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label class="field-label" for="memberNameInput_${i}">Member ${i + 1}</label>
+                    <input type="text" id="memberNameInput_${i}" value="${escapeHtml(m.name)}" placeholder="Member ${i + 1} name" oninput="window.updateMemberName(${i}, this.value)">
+                    <div class="print-mirror" id="pm_memberName_${i}"></div>
+                `;
+                rosterGrid.appendChild(div);
+            }
+
+            // 2. Page 1 Member Agreement Pills
+            const agreeContainer = document.getElementById('memberAgreementContainer');
+            agreeContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const m = state.members[i];
+                const label = document.createElement('label');
+                label.className = `agree-check-pill ${m.agreed ? 'checked' : ''}`;
+                label.id = `agreePill_${i}`;
+                label.innerHTML = `
+                    <input type="checkbox" id="agreeCb_${i}" ${m.agreed ? 'checked' : ''} onchange="window.toggleMemberAgree(${i}, this.checked)">
+                    <span class="sync-member-${i}">${escapeHtml(getMemberDisplayName(i))}</span>
+                `;
+                agreeContainer.appendChild(label);
+            }
+
+            // 3. Page 2 Milestone 1 Table
+            const m1Body = document.getElementById('m1TableBody');
+            m1Body.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const m = state.members[i];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="member-cell"><span class="sync-member-${i}">${escapeHtml(getMemberDisplayName(i))}</span></td>
+                    <td>
+                        <div class="wc-wrap">
+                            <input type="text" id="m1UndInput_${i}" data-max="30" value="${escapeHtml(m.m1Understand)}" placeholder="One thing I understand..." oninput="window.handleMemberWordLimit(this, ${i}, 'm1Understand')">
+                            <span class="wc-pill" id="wc_m1Understand_${i}">0 / 30 words</span>
+                        </div>
+                        <div class="print-mirror" id="pm_m1Understand_${i}"></div>
+                    </td>
+                    <td>
+                        <div class="wc-wrap">
+                            <input type="text" id="m1QInput_${i}" data-max="30" value="${escapeHtml(m.m1Question)}" placeholder="One question or confusion..." oninput="window.handleMemberWordLimit(this, ${i}, 'm1Question')">
+                            <span class="wc-pill" id="wc_m1Question_${i}">0 / 30 words</span>
+                        </div>
+                        <div class="print-mirror" id="pm_m1Question_${i}"></div>
+                    </td>
+                    <td>
+                        <select id="m1HelpSelect_${i}" class="teammate-select" onchange="window.updateMemberDropdown(${i}, 'm1Helper', this.value)">
+                            ${buildTeammateOptionsHTML(i, m.m1Helper)}
+                        </select>
+                        <div class="print-mirror" id="pm_m1Helper_${i}"></div>
+                    </td>
+                `;
+                m1Body.appendChild(tr);
+            }
+
+            // 4. Page 3 Milestones 2 & 3 Table
+            const m23Body = document.getElementById('m23TableBody');
+            m23Body.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const m = state.members[i];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="member-cell"><span class="sync-member-${i}">${escapeHtml(getMemberDisplayName(i))}</span></td>
+                    <td>
+                        <div class="wc-wrap">
+                            <input type="text" id="m23TaskInput_${i}" data-max="30" value="${escapeHtml(m.m23Task)}" placeholder="Concrete deliverable..." oninput="window.handleMemberWordLimit(this, ${i}, 'm23Task')">
+                            <span class="wc-pill" id="wc_m23Task_${i}">0 / 30 words</span>
+                        </div>
+                        <div class="print-mirror" id="pm_m23Task_${i}"></div>
+                    </td>
+                    <td>
+                        <div class="wc-wrap">
+                            <input type="text" id="m23TimeInput_${i}" data-max="30" value="${escapeHtml(m.m23Timeline)}" placeholder="e.g. By Wed 2pm / 30 min..." oninput="window.handleMemberWordLimit(this, ${i}, 'm23Timeline')">
+                            <span class="wc-pill" id="wc_m23Timeline_${i}">0 / 30 words</span>
+                        </div>
+                        <div class="print-mirror" id="pm_m23Timeline_${i}"></div>
+                    </td>
+                    <td>
+                        <select id="m23PeerSelect_${i}" class="teammate-select" onchange="window.updateMemberDropdown(${i}, 'm23Peer', this.value)">
+                            ${buildTeammateOptionsHTML(i, m.m23Peer)}
+                        </select>
+                        <div class="print-mirror" id="pm_m23Peer_${i}"></div>
+                    </td>
+                `;
+                m23Body.appendChild(tr);
+            }
+
+            // 5. Page 5 Device-Private Self-Check Table
+            renderPrivateSelfCheckSection();
+        }
+
+        function updatePrivateScoreRow(idx) {
+            const s = privateState.members[idx].scores;
+            const total = (s[0] || 0) + (s[1] || 0) + (s[2] || 0) + (s[3] || 0);
+            const totalEl = document.getElementById(`totalCell_${idx}`);
+            const badgeEl = document.getElementById(`tierBadge_${idx}`);
+
+            if (totalEl) totalEl.textContent = `${total} / 20`;
+            if (badgeEl) {
+                badgeEl.className = 'tier-badge';
+                if (total >= 18) {
+                    badgeEl.classList.add('tier-outstanding');
+                    badgeEl.textContent = 'Outstanding';
+                } else if (total >= 14) {
+                    badgeEl.classList.add('tier-solid');
+                    badgeEl.textContent = 'Solid Player';
+                } else if (total >= 8) {
+                    badgeEl.classList.add('tier-prompting');
+                    badgeEl.textContent = 'Needs Prompting';
+                } else {
+                    badgeEl.classList.add('tier-low');
+                    badgeEl.textContent = 'Low Participation';
+                }
+            }
+        }
+
+        /* ==========================================================================
+           7. FORM FIELD HANDLERS & TEACHER CHECK MODE
+           ========================================================================== */
+        function updateRoadmapStrip() {
+            const m1El = document.getElementById('rmNode_m1');
+            const m23El = document.getElementById('rmNode_m23');
+            const m4El = document.getElementById('rmNode_m4');
+            if (m1El) m1El.classList.toggle('done', !!state.fields.tc_m1);
+            if (m23El) m23El.classList.toggle('done', !!state.fields.tc_m23);
+            if (m4El) m4El.classList.toggle('done', !!state.fields.tc_m4);
+        }
+
+        window.updateField = function(key, val) {
+            state.fields[key] = val;
+            scheduleAutoSave();
+        };
+
+        window.setDecisionMethod = function(val) {
+            state.fields.decisionMethod = val;
+            document.getElementById('decBtn_Consensus').classList.toggle('selected', val === 'Consensus');
+            document.getElementById('decBtn_Majority').classList.toggle('selected', val === 'Majority Vote');
+            scheduleAutoSave();
+        };
+
+        window.setEveryoneSpoke = function(val) {
+            state.fields.everyoneSpoke = val;
+            document.getElementById('spokeBtn_Yes').classList.toggle('selected', val === 'Yes');
+            document.getElementById('spokeBtn_No').classList.toggle('selected', val === 'No');
+            scheduleAutoSave();
+        };
+
+        window.setFbClear = function(val) {
+            state.fields.fbClear = val;
+            document.getElementById('fbBtn_Yes').classList.toggle('selected', val === 'Yes');
+            document.getElementById('fbBtn_Somewhat').classList.toggle('selected', val === 'Somewhat');
+            document.getElementById('fbBtn_No').classList.toggle('selected', val === 'No');
+            scheduleAutoSave();
+        };
+
+        window.toggleMilestoneCheck = function(fieldKey, pillId, checked) {
+            state.fields[fieldKey] = checked;
+            const pill = document.getElementById(pillId);
+            if (pill) pill.classList.toggle('checked', checked);
+            updateRoadmapStrip();
+            scheduleAutoSave();
+        };
+
+        window.setTeacherVerdict = function(verdict) {
+            state.fields.teacherVerdict = state.fields.teacherVerdict === verdict ? '' : verdict;
+            document.getElementById('verdictPassBtn').classList.toggle('active', state.fields.teacherVerdict === 'PASS');
+            document.getElementById('verdictReviseBtn').classList.toggle('active', state.fields.teacherVerdict === 'REVISE');
+            scheduleAutoSave();
+        };
+
+        window.toggleTeacherCheckMode = function() {
+            isTeacherMode = !isTeacherMode;
+            document.body.classList.toggle('teacher-check-highlight', isTeacherMode);
+            document.getElementById('teacherCheckBtn').classList.toggle('active', isTeacherMode);
+
+            if (isTeacherMode) {
+                if (state.viewMode === 'paged') {
+                    window.goToPage(4);
+                }
+                const bar = document.getElementById('teacherSignoffBar');
+                if (bar) {
+                    setTimeout(() => {
+                        bar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 60);
+                }
+            }
+        };
+
+        /* ==========================================================================
+           8. BRAINSTORMING TIMER (WEB AUDIO CHIME, ZERO ALERT())
+           ========================================================================== */
+        function renderTimerText() {
+            const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+            const s = String(timerSeconds % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+        }
+
+        function playTimerChime() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.65);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.65);
+            } catch (e) {
+                // Ignore audio block if user hasn't interacted yet
+            }
+        }
+
+        window.toggleTimer = function() {
+            const btn = document.getElementById('timerStartPauseBtn');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.textContent = 'Start';
+            } else {
+                if (timerSeconds <= 0) timerSeconds = lastTimerPreset;
+                btn.textContent = 'Pause';
+                timerInterval = setInterval(() => {
+                    if (timerSeconds > 0) {
+                        timerSeconds--;
+                        renderTimerText();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        btn.textContent = 'Start';
+                        playTimerChime();
+                        showToast('Time is up!');
+                    }
+                }, 1000);
+            }
+        };
+
+        window.setTimer = function(secs) {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            document.getElementById('timerStartPauseBtn').textContent = 'Start';
+            lastTimerPreset = secs;
+            timerSeconds = secs;
+            renderTimerText();
+        };
+
+        window.resetTimer = function() {
+            window.setTimer(lastTimerPreset);
+        };
+
+        /* ==========================================================================
+           9. UNCLIPPED PRINT / PDF MIRRORING & SANDBOX FALLBACK
+           ========================================================================== */
+        function setMirrorText(id, val) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const trimmed = (val || '').trim();
+            if (trimmed) {
+                el.textContent = trimmed;
+                el.classList.remove('empty');
+            } else {
+                el.textContent = '—';
+                el.classList.add('empty');
+            }
+        }
+
+        function resolveTeammateName(token) {
+            if (!token || !token.startsWith('member_')) return '';
+            const idx = parseInt(token.replace('member_', ''), 10);
+            if (isNaN(idx) || idx < 0 || idx >= state.teamSize) return '';
+            return getMemberDisplayName(idx);
+        }
+
+        function populateAllPrintMirrors() {
+            const f = state.fields;
+            setMirrorText('pm_groupName', f.groupName);
+            setMirrorText('pm_docDate', f.docDate);
+            setMirrorText('pm_groupGoal', f.groupGoal);
+            setMirrorText('pm_decisionMethod', f.decisionMethod ? `Decision Method: ${f.decisionMethod}` : '');
+            setMirrorText('pm_understandAll', f.understandAll);
+            setMirrorText('pm_teacherQuestions', f.teacherQuestions);
+            setMirrorText('pm_everyoneSpoke', f.everyoneSpoke ? `Everyone spoke: ${f.everyoneSpoke}` : '');
+            setMirrorText('pm_reflectionWell', f.reflectionWell);
+            setMirrorText('pm_reflectionDifferent', f.reflectionDifferent);
+
+            const verdictSummary = [
+                f.teacherVerdict ? `Status: ${f.teacherVerdict}` : '',
+                f.teacherInitials ? `Initials: ${f.teacherInitials}` : ''
+            ].filter(Boolean).join('  |  ');
+            setMirrorText('pm_teacherVerdict', verdictSummary);
+
+            setMirrorText('pm_stuckLog', f.stuckLog);
+            setMirrorText('pm_fbClear', f.fbClear ? `Clear first step: ${f.fbClear}` : '');
+            setMirrorText('pm_fbConfusing', f.fbConfusing);
+
+            const evalVal = privateState.evaluator || 'prefer_not';
+            const evalLabel = evalVal.startsWith('member_') ? resolveTeammateName(evalVal) : 'Prefer not to label';
+            setMirrorText('pm_privateEvaluator', `Evaluator: ${evalLabel}`);
+
+            for (let i = 0; i < state.teamSize; i++) {
+                const m = state.members[i];
+                const pm = privateState.members[i] || createBlankPrivateMember();
+                setMirrorText(`pm_memberName_${i}`, getMemberDisplayName(i));
+                setMirrorText(`pm_m1Understand_${i}`, m.m1Understand);
+                setMirrorText(`pm_m1Question_${i}`, m.m1Question);
+                setMirrorText(`pm_m1Helper_${i}`, resolveTeammateName(m.m1Helper));
+                setMirrorText(`pm_m23Task_${i}`, m.m23Task);
+                setMirrorText(`pm_m23Timeline_${i}`, m.m23Timeline);
+                setMirrorText(`pm_m23Peer_${i}`, resolveTeammateName(m.m23Peer));
+                for (let s = 0; s < 4; s++) {
+                    setMirrorText(`pm_sc_${i}_${s}`, `${pm.scores[s] ?? 5} / 5`);
+                }
+                setMirrorText(`pm_privNote_${i}`, pm.note);
+            }
+        }
+
+        window.triggerPrint = function() {
+            populateAllPrintMirrors();
+            document.body.classList.toggle('exclude-private-print', !privateState.includeInPrint);
+
+            let isSandboxedFrame = false;
+            try {
+                isSandboxedFrame = window.self !== window.top;
+            } catch (e) {
+                isSandboxedFrame = true;
+            }
+
+            if (isSandboxedFrame) {
+                document.getElementById('printFallbackBanner').classList.add('visible');
+            }
+
+            try {
+                window.print();
+            } catch (e) {
+                document.getElementById('printFallbackBanner').classList.add('visible');
+            }
+        };
+
+        window.dismissPrintBanner = function() {
+            document.getElementById('printFallbackBanner').classList.remove('visible');
+        };
+
+        window.downloadPrintableHTML = function() {
+            populateAllPrintMirrors();
+            const f = state.fields;
+            const slug = (f.groupName || 'plan').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_') || 'plan';
+
+            const docClone = document.documentElement.cloneNode(true);
+            const bodyClone = docClone.querySelector('body');
+            bodyClone.classList.add('full-sheet-mode');
+
+            if (!privateState.includeInPrint) {
+                docClone.querySelectorAll('.private-selfcheck-block').forEach(el => el.remove());
+            }
+
+            docClone.querySelectorAll('.workspace-header, .wizard-header, .page-footer-nav, .timer-bar, .stepper-ctrl, .privacy-banner, .print-private-toggle, .print-fallback-banner, .firebase-help-banner, .reset-confirm-bar, .toast-notification, .wc-pill, script').forEach(el => el.remove());
+
+            docClone.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) cb.setAttribute('checked', 'checked');
+                else cb.removeAttribute('checked');
+            });
+
+            const extraStyle = docClone.ownerDocument.createElement('style');
+            extraStyle.textContent = `
+                body { background: #ffffff !important; padding: 20px !important; }
+                .form-page { display: block !important; margin-bottom: 16px !important; box-shadow: none !important; }
+                input[type="text"], input[type="date"], input[type="number"], select, textarea { display: none !important; }
+                .print-mirror { display: block !important; min-height: 20px; padding: 3px 2px; border-bottom: 1px solid #94a3b8; font-size: 10.5pt; color: #0f172a; white-space: pre-wrap; }
+                .print-mirror.empty { color: #94a3b8; }
+            `;
+            docClone.querySelector('head').appendChild(extraStyle);
+
+            const autoPrintScript = docClone.ownerDocument.createElement('script');
+            autoPrintScript.textContent = `window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 250); });`;
+            bodyClone.appendChild(autoPrintScript);
+
+            const htmlOutput = '<!DOCTYPE html>\n' + docClone.outerHTML;
+            const blob = new Blob([htmlOutput], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `group-progress-print-${slug}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Downloaded print sheet (.html)');
+        };
+
+        /* ==========================================================================
+           10. EXPORT, IMPORT & INLINE RESET (NO WINDOW.CONFIRM)
+           ========================================================================== */
+        window.exportJSON = function() {
+            const slug = (state.fields.groupName || 'plan').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_') || 'plan';
+            const bundle = {
+                sharedPlan: state,
+                privateSelfCheck: privateState
+            };
+            const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `group-progress-${slug}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Exported JSON backup');
+        };
+
+        window.importJSON = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const rawObj = JSON.parse(evt.target.result);
+                    const sharedSrc = rawObj && rawObj.sharedPlan ? rawObj.sharedPlan : rawObj;
+                    const privSrc = rawObj && rawObj.privateSelfCheck ? rawObj.privateSelfCheck : null;
+
+                    if (sharedSrc && Array.isArray(sharedSrc.members) && sharedSrc.fields) {
+                        const base = createInitialSharedState();
+                        state.viewMode = sharedSrc.viewMode === 'full' ? 'full' : 'paged';
+                        state.currentPage = Math.max(1, Math.min(5, parseInt(sharedSrc.currentPage, 10) || 1));
+                        state.teamSize = Math.max(1, Math.min(8, parseInt(sharedSrc.teamSize, 10) || 4));
+                        for (let i = 0; i < 8; i++) {
+                            const pm = sharedSrc.members[i] || {};
+                            state.members[i] = Object.assign(createBlankSharedMember(), {
+                                name: pm.name || '',
+                                agreed: !!pm.agreed,
+                                m1Understand: pm.m1Understand || '',
+                                m1Question: pm.m1Question || '',
+                                m1Helper: pm.m1Helper || '',
+                                m23Task: pm.m23Task || '',
+                                m23Timeline: pm.m23Timeline || '',
+                                m23Peer: pm.m23Peer || ''
+                            });
+                        }
+                        state.fields = Object.assign(base.fields, sharedSrc.fields);
+
+                        if (privSrc && Array.isArray(privSrc.members)) {
+                            const pBase = createInitialPrivateState();
+                            pBase.evaluator = privSrc.evaluator || 'prefer_not';
+                            pBase.includeInPrint = privSrc.includeInPrint !== false;
+                            for (let i = 0; i < 8; i++) {
+                                const item = privSrc.members[i] || {};
+                                pBase.members[i] = {
+                                    scores: Array.isArray(item.scores) && item.scores.length >= 4 ? item.scores.slice(0, 4) : [5, 5, 5, 5],
+                                    note: item.note || ''
+                                };
+                            }
+                            privateState = pBase;
+                        }
+
+                        hydrateAllUI();
+                        scheduleAutoSave();
+                        showToast('Imported backup');
+                    } else {
+                        showToast('Invalid JSON format');
+                    }
+                } catch (err) {
+                    showToast('Could not read file');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        };
+
+        window.openResetConfirm = function() {
+            document.getElementById('resetConfirmBar').classList.add('visible');
+        };
+
+        window.closeResetConfirm = function() {
+            document.getElementById('resetConfirmBar').classList.remove('visible');
+        };
+
+        window.confirmResetAll = function() {
+            window.closeResetConfirm();
+            safeRemoveItem(SHARED_STORAGE_KEY);
+            safeRemoveItem(getPrivateStorageKey());
+            const preservedMode = state.viewMode;
+            state = createInitialSharedState();
+            state.viewMode = preservedMode;
+            privateState = createInitialPrivateState();
+            hydrateAllUI();
+            scheduleAutoSave();
+            showToast('Form cleared');
+        };
+
+        /* ==========================================================================
+           11. HYDRATE UI & INITIALIZE
+           ========================================================================== */
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function hydrateAllUI() {
+            const f = state.fields;
+
+            document.getElementById('groupName').value = f.groupName || '';
+            document.getElementById('docDate').value = f.docDate || '';
+            document.getElementById('groupGoal').value = f.groupGoal || '';
+            document.getElementById('understandAll').value = f.understandAll || '';
+            document.getElementById('teacherQuestions').value = f.teacherQuestions || '';
+            document.getElementById('reflectionWell').value = f.reflectionWell || '';
+            document.getElementById('reflectionDifferent').value = f.reflectionDifferent || '';
+            document.getElementById('teacherInitials').value = f.teacherInitials || '';
+            document.getElementById('stuckLog').value = f.stuckLog || '';
+            document.getElementById('fbConfusing').value = f.fbConfusing || '';
+
+            document.getElementById('decBtn_Consensus').classList.toggle('selected', f.decisionMethod === 'Consensus');
+            document.getElementById('decBtn_Majority').classList.toggle('selected', f.decisionMethod === 'Majority Vote');
+            document.getElementById('spokeBtn_Yes').classList.toggle('selected', f.everyoneSpoke === 'Yes');
+            document.getElementById('spokeBtn_No').classList.toggle('selected', f.everyoneSpoke === 'No');
+            document.getElementById('fbBtn_Yes').classList.toggle('selected', f.fbClear === 'Yes');
+            document.getElementById('fbBtn_Somewhat').classList.toggle('selected', f.fbClear === 'Somewhat');
+            document.getElementById('fbBtn_No').classList.toggle('selected', f.fbClear === 'No');
+
+            document.getElementById('chk_review').checked = !!f.chk_review;
+            document.getElementById('chk_explain').checked = !!f.chk_explain;
+            document.getElementById('chk_feedback').checked = !!f.chk_feedback;
+
+            document.getElementById('tc_m1').checked = !!f.tc_m1;
+            document.getElementById('msPill_m1').classList.toggle('checked', !!f.tc_m1);
+            document.getElementById('tc_m23').checked = !!f.tc_m23;
+            document.getElementById('msPill_m23').classList.toggle('checked', !!f.tc_m23);
+            document.getElementById('tc_m4').checked = !!f.tc_m4;
+            document.getElementById('msPill_m4').classList.toggle('checked', !!f.tc_m4);
+            updateRoadmapStrip();
+
+            document.getElementById('verdictPassBtn').classList.toggle('active', f.teacherVerdict === 'PASS');
+            document.getElementById('verdictReviseBtn').classList.toggle('active', f.teacherVerdict === 'REVISE');
+
+            renderDynamicMemberSections();
+            refreshAllWordBadges();
+            window.setViewMode(state.viewMode);
+            updateAutoSaveLabel('saved');
+        }
+
+        function initWorkspace() {
+            loadAndMigrateState();
+            hydrateAllUI();
+
+            // Auto-join room if ?room=CODE is present in URL
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const urlRoom = sanitizeRoomCode(params.get('room'));
+                if (urlRoom) {
+                    connectToRoom(urlRoom, true);
+                }
+            } catch (e) {}
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initWorkspace);
+        } else {
+            initWorkspace();
+        }
+    </script>
+</body>
+</html>
